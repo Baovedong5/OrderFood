@@ -10,16 +10,13 @@ export const LoginBody = z
 export type LoginBodyType = z.TypeOf<typeof LoginBody>;
 
 export const LoginRes = z.object({
-  statusCode: z.number(),
-  message: z.string(),
-  data: z.object({
-    access_token: z.string(),
-    user: z.object({
-      id: z.number(),
-      name: z.string(),
-      email: z.string(),
-      role: z.string(),
-    }),
+  access_token: z.string(),
+  refresh_token: z.string(),
+  user: z.object({
+    id: z.number(),
+    name: z.string(),
+    email: z.string(),
+    role: z.string(),
   }),
 });
 

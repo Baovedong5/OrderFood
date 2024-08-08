@@ -15,6 +15,9 @@ import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { toast } from "@/components/ui/use-toast";
 import { LoginBody, LoginBodyType } from "@/schemaValidations/auth.schema";
+import Link from "next/link";
+import { BiArrowBack } from "react-icons/bi";
+import { signIn } from "next-auth/react";
 
 const LoginForm = () => {
   const form = useForm<LoginBodyType>({
@@ -25,13 +28,33 @@ const LoginForm = () => {
     },
   });
 
-  const onSubmit = async (data: LoginBodyType) => {};
+  const onSubmit = async (data: LoginBodyType) => {
+    const res = await signIn("credentials", {
+      username: data.username,
+      password: data.password,
+      redirect: false,
+    });
+
+    if (!res?.error) {
+      toast({
+        description: "Đăng nhập thành công",
+      });
+    } else {
+      toast({
+        description: "Tài khoản hoặc mật khẩu không đúng",
+        variant: "destructive",
+      });
+    }
+  };
 
   return (
     <div className="flex items-center justify-center h-[550px] ">
       <Card className="mx-auto max-w-sm">
         <CardHeader>
-          <CardTitle className="text-2xl">Đăng nhập</CardTitle>
+          <Link href={"/"}>
+            <BiArrowBack />
+          </Link>
+          <CardTitle className="text-2xl text-center">Đăng nhập</CardTitle>
           <CardDescription>
             Nhập email và mật khẩu của bạn để đăng nhập vào hệ thống
           </CardDescription>
@@ -50,14 +73,8 @@ const LoginForm = () => {
                   render={({ field }) => (
                     <FormItem>
                       <div className="grid gap-2">
-                        <Label htmlFor="email">Username</Label>
-                        <Input
-                          id="username"
-                          type="email"
-                          placeholder="m@example.com"
-                          required
-                          {...field}
-                        />
+                        <Label htmlFor="email">Tài khoản</Label>
+                        <Input id="username" type="email" required {...field} />
                         <FormMessage />
                       </div>
                     </FormItem>
@@ -69,7 +86,7 @@ const LoginForm = () => {
                   render={({ field }) => (
                     <FormItem>
                       <div className="grid gap-2">
-                        <Label>Password</Label>
+                        <Label>Mật khẩu</Label>
                         <Input
                           id="password"
                           type="password"
