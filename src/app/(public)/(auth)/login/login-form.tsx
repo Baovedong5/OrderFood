@@ -18,8 +18,11 @@ import { LoginBody, LoginBodyType } from "@/schemaValidations/auth.schema";
 import Link from "next/link";
 import { BiArrowBack } from "react-icons/bi";
 import { signIn } from "next-auth/react";
+import { useRouter } from "next/navigation";
 
 const LoginForm = () => {
+  const route = useRouter();
+
   const form = useForm<LoginBodyType>({
     resolver: zodResolver(LoginBody),
     defaultValues: {
@@ -39,6 +42,7 @@ const LoginForm = () => {
       toast({
         description: "Đăng nhập thành công",
       });
+      route.push("/manage/dashboard");
     } else {
       toast({
         description: "Tài khoản hoặc mật khẩu không đúng",
