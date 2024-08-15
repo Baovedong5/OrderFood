@@ -42,7 +42,6 @@ export const http = async <T>(props: IRequest) => {
 };
 
 export const sendRequestFile = async <T>(props: IRequest) => {
-  //type
   let {
     url,
     method,

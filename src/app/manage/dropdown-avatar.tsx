@@ -1,6 +1,5 @@
 "use client";
 
-import accountApiRequest from "@/apiRequests/account";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
 import {
@@ -11,8 +10,7 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import { useAccountProfile } from "@/queries/useAccount";
-import { useQuery } from "@tanstack/react-query";
+import { useAccountMe } from "@/queries/useAccount";
 import { signOut, useSession } from "next-auth/react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
@@ -23,9 +21,9 @@ const DropdownAvatar = () => {
 
   const token = session?.access_token as string;
 
-  const { data } = useAccountProfile(token);
+  const { data } = useAccountMe(token);
 
-  const account = data?.data?.user;
+  const account = data?.data;
 
   const redirect = () => {
     router.push("/");
@@ -41,7 +39,11 @@ const DropdownAvatar = () => {
         >
           <Avatar>
             <AvatarImage
-              src={account?.avatar ?? undefined}
+              src={
+                account?.avatar
+                  ? `http://localhost:8080/images/avatar/${account?.avatar}`
+                  : undefined
+              }
               alt={account?.name}
             />
             <AvatarFallback>

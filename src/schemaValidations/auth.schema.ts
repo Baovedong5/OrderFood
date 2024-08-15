@@ -23,13 +23,11 @@ export const LoginRes = z.object({
 export type LoginResType = z.TypeOf<typeof LoginRes>;
 
 export const AccountMeRes = z.object({
-  user: z.object({
-    id: z.number(),
-    name: z.string(),
-    email: z.string(),
-    role: z.string(),
-    avatar: z.string().nullable(),
-  }),
+  id: z.number(),
+  name: z.string(),
+  email: z.string(),
+  role: z.string(),
+  avatar: z.string().nullable(),
 });
 
 export type AccountMeResType = z.TypeOf<typeof AccountMeRes>;
@@ -37,12 +35,12 @@ export type AccountMeResType = z.TypeOf<typeof AccountMeRes>;
 export const ChangePasswordBody = z
   .object({
     oldPassword: z.string().min(6).max(100),
-    password: z.string().min(6).max(100),
+    newPassword: z.string().min(6).max(100),
     confirmPassword: z.string().min(6).max(100),
   })
   .strict()
-  .superRefine(({ confirmPassword, password }, ctx) => {
-    if (confirmPassword !== password) {
+  .superRefine(({ confirmPassword, newPassword }, ctx) => {
+    if (confirmPassword !== newPassword) {
       ctx.addIssue({
         code: "custom",
         message: "Mật khẩu mới không khớp",
@@ -56,7 +54,7 @@ export type ChangePasswordBodyType = z.TypeOf<typeof ChangePasswordBody>;
 export const UpdateMeBody = z
   .object({
     name: z.string().min(2).max(100),
-    avatar: z.string().url().optional(),
+    avatar: z.string().optional(),
   })
   .strict();
 
