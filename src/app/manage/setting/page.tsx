@@ -2,7 +2,7 @@ import { Badge } from "@/components/ui/badge";
 import ChangePasswordForm from "./change-password-form";
 import UpdateProfileForm from "./update-profile-form";
 
-const Setting = () => {
+const Setting = async () => {
   return (
     <main className="grid flex-1 items-center gap-4 p-4 sm:px-6 sm:py-0 md:gap-8">
       <div className="mx-auto grid w-full flex-1 auto-rows-max gap-4">
