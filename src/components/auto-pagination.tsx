@@ -78,12 +78,12 @@ const AutoPagination = (props: IProps) => {
         return (
           <PaginationItem key={index}>
             <PaginationLink
-              href={JSON.stringify({
+              href={{
                 pathname,
                 query: {
                   page: pageNumber,
                 },
-              })}
+              }}
               isActive={pageNumber === page}
             >
               {pageNumber}
@@ -98,12 +98,12 @@ const AutoPagination = (props: IProps) => {
       <PaginationContent>
         <PaginationItem>
           <PaginationPrevious
-            href={JSON.stringify({
+            href={{
               pathname,
               query: {
                 page: page - 1,
               },
-            })}
+            }}
             className={cn({
               "cursor-not-allowed": page === 1,
             })}
@@ -118,12 +118,12 @@ const AutoPagination = (props: IProps) => {
 
         <PaginationItem>
           <PaginationNext
-            href={JSON.stringify({
+            href={{
               pathname,
               query: {
                 page: page + 1,
               },
-            })}
+            }}
             className={cn({
               "cursor-not-allowed": page === pageSize,
             })}

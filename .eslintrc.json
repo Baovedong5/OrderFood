@@ -2,5 +2,8 @@
   "extends": [
     "plugin:@tanstack/eslint-plugin-query/recommended",
     "next/core-web-vitals"
-  ]
+  ],
+  "rules": {
+    "@tanstack/query/exhaustive-deps": "off"
+  }
 }
