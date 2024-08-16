@@ -14,11 +14,15 @@ import {
 import { Form, FormField, FormItem, FormMessage } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { toast } from "@/components/ui/use-toast";
+import { useAddAccountMutation } from "@/queries/useAccount";
+import { useUploadMediaMutation } from "@/queries/useMedia";
 import {
   CreateEmployeeAccountBody,
   CreateEmployeeAccountBodyType,
 } from "@/schemaValidations/account.schema";
 import { zodResolver } from "@hookform/resolvers/zod";
+import { useSession } from "next-auth/react";
 import { useMemo, useRef, useState } from "react";
 import { useForm } from "react-hook-form";
 import { LuPlusCircle, LuUpload } from "react-icons/lu";
@@ -26,6 +30,12 @@ import { LuPlusCircle, LuUpload } from "react-icons/lu";
 const AddEmployee = () => {
   const [file, setFile] = useState<File | null>(null);
   const [open, setOpen] = useState(false);
+  const addAccountMutation = useAddAccountMutation();
+  const uploadMediaMutation = useUploadMediaMutation();
+
+  const { data: session } = useSession();
+  const token = session?.access_token as string;
+
   const avatarInputRef = useRef<HTMLInputElement | null>(null);
   const form = useForm<CreateEmployeeAccountBodyType>({
     resolver: zodResolver(CreateEmployeeAccountBody),
@@ -46,6 +56,49 @@ const AddEmployee = () => {
 
     return avatar ? `http://localhost:8080/images/avatar/${avatar}` : undefined;
   }, [file, avatar]);
+
+  const reset = () => {
+    form.reset();
+    setFile(null);
+  };
+
+  const onSubmit = async (values: CreateEmployeeAccountBodyType) => {
+    if (addAccountMutation.isPending) return;
+
+    let body = values;
+    if (file) {
+      const formData = new FormData();
+      formData.append("image", file);
+      const uploadImageResult = await uploadMediaMutation.mutateAsync({
+        formData,
+        type: "avatar",
+      });
+
+      const imageUrl = uploadImageResult.data.fileName;
+
+      body = { ...values, avatar: imageUrl };
+    }
+
+    const result = await addAccountMutation.mutateAsync({
+      token,
+      body,
+    });
+
+    console.log("result", result);
+
+    if (result && result.data) {
+      toast({
+        description: "Tạo tài khoản thành công",
+      });
+      reset();
+      setOpen(false);
+    } else {
+      toast({
+        description: "Tạo tài khoản thất bại",
+        variant: "destructive",
+      });
+    }
+  };
 
   return (
     <Dialog onOpenChange={setOpen} open={open}>
@@ -69,6 +122,7 @@ const AddEmployee = () => {
             noValidate
             className="grid auto-rows-max items-start gap-4 md:gap-8"
             id="add-employee-form"
+            onSubmit={form.handleSubmit(onSubmit)}
           >
             <div className="grid gap-4 py-4">
               <FormField

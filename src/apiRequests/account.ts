@@ -1,4 +1,10 @@
 import {
+  AccountListResType,
+  AccountResType,
+  CreateEmployeeAccountBodyType,
+  UpdateEmployeeAccountBodyType,
+} from "@/schemaValidations/account.schema";
+import {
   AccountMeResType,
   ChangePasswordBodyType,
   UpdateMeBodyType,
@@ -36,6 +42,67 @@ const accountApiRequest = {
       body: {
         ...body,
       },
+      headers: {
+        Authorization: `Bearer ${token}`,
+      },
+    });
+  },
+
+  list: (token: string) => {
+    return http<IBackendRes<AccountListResType>>({
+      url: "/api/v1/accounts",
+      method: "GET",
+      headers: {
+        Authorization: `Bearer ${token}`,
+      },
+    });
+  },
+
+  getEmployee: (id: number, token: string) => {
+    return http<IBackendRes<AccountResType>>({
+      url: `/api/v1/accounts/${id}`,
+      method: "GET",
+      headers: {
+        Authorization: `Bearer ${token}`,
+      },
+    });
+  },
+
+  addEmployee: (token: string, body: CreateEmployeeAccountBodyType) => {
+    return http<IBackendRes<AccountResType>>({
+      url: "/api/v1/accounts",
+      method: "POST",
+      body: {
+        ...body,
+      },
+      headers: {
+        Authorization: `Bearer ${token}`,
+      },
+    });
+  },
+
+  updateEmployee: (
+    token: string,
+    body: UpdateEmployeeAccountBodyType & { id: number }
+  ) => {
+    const { id, ...rest } = body;
+
+    return http<IBackendRes<AccountResType>>({
+      url: `/api/v1/accounts/${id}`,
+      method: "PATCH",
+      body: {
+        ...rest,
+      },
+      headers: {
+        Authorization: `Bearer ${token}`,
+      },
+    });
+  },
+
+  deleteEmployee: (id: number, token: string) => {
+    return http<IBackendRes<AccountResType>>({
+      url: `/api/v1/accounts/${id}`,
+      method: "DELETE",
       headers: {
         Authorization: `Bearer ${token}`,
       },

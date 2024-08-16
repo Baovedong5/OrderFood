@@ -14,12 +14,16 @@ import { Form, FormField, FormItem, FormMessage } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Switch } from "@/components/ui/switch";
+import { toast } from "@/components/ui/use-toast";
+import { useGetAccount, useUpdateAccountMutation } from "@/queries/useAccount";
+import { useUploadMediaMutation } from "@/queries/useMedia";
 import {
   UpdateEmployeeAccountBody,
   UpdateEmployeeAccountBodyType,
 } from "@/schemaValidations/account.schema";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { useMemo, useRef, useState } from "react";
+import { useSession } from "next-auth/react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { useForm } from "react-hook-form";
 import { LuUpload } from "react-icons/lu";
 
@@ -34,6 +38,14 @@ const EditEmployee = (props: IEditEmployee) => {
 
   const [file, setFile] = useState<File | null>(null);
   const avatarInputRef = useRef<HTMLInputElement | null>(null);
+
+  const { data: session } = useSession();
+  const token = session?.access_token as string;
+
+  const { data } = useGetAccount(token, id as number);
+
+  const updateAccountMutation = useUpdateAccountMutation();
+  const uploadMediaMutation = useUploadMediaMutation();
 
   const form = useForm<UpdateEmployeeAccountBodyType>({
     resolver: zodResolver(UpdateEmployeeAccountBody),
@@ -57,12 +69,82 @@ const EditEmployee = (props: IEditEmployee) => {
     return avatar ? `http://localhost:8080/images/avatar/${avatar}` : undefined;
   }, [file, avatar]);
 
+  useEffect(() => {
+    if (data) {
+      const { name, avatar, email } = data.data;
+      form.reset({
+        name,
+        avatar: avatar ?? undefined,
+        email,
+        changePassword: form.getValues("changePassword"),
+        password: form.getValues("password"),
+        confirmPassword: form.getValues("confirmPassword"),
+      });
+    }
+  }, [data, form]);
+
+  const onSubmit = async (values: UpdateEmployeeAccountBodyType) => {
+    if (updateAccountMutation.isPending) return;
+
+    let body: UpdateEmployeeAccountBodyType & { id: number } = {
+      id: id as number,
+      ...values,
+    };
+
+    if (file) {
+      const formData = new FormData();
+      formData.append("image", file);
+
+      const uploadImageResult = await uploadMediaMutation.mutateAsync({
+        formData,
+        type: "avatar",
+      });
+
+      if (uploadImageResult.error) {
+        toast({
+          description: "Ảnh không đúng định dạng hoặc quá lớn",
+          variant: "destructive",
+        });
+      }
+
+      const imageUrl = uploadImageResult.data.fileName;
+
+      body = {
+        ...body,
+        avatar: imageUrl,
+      };
+    }
+
+    const result = await updateAccountMutation.mutateAsync({
+      token,
+      body,
+    });
+
+    if (result && result.data) {
+      toast({
+        description: "Cập nhật tài khoản thành công",
+      });
+      reset();
+      onSubmitSuccess && onSubmitSuccess();
+    } else {
+      toast({
+        description: "Cập nhật tài khoản thất bại",
+        variant: "destructive",
+      });
+    }
+  };
+
+  const reset = () => {
+    setId(undefined);
+    setFile(null);
+  };
+
   return (
     <Dialog
       open={Boolean(id)}
       onOpenChange={(value) => {
         if (!value) {
-          setId(undefined);
+          reset();
         }
       }}
     >
@@ -78,6 +160,7 @@ const EditEmployee = (props: IEditEmployee) => {
             noValidate
             className="grid auto-rows-max items-start gap-4 md:gap-8"
             id="edit-employee-form"
+            onSubmit={form.handleSubmit(onSubmit)}
           >
             <div className="grid gap-4 py-4">
               <FormField

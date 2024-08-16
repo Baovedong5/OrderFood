@@ -5,15 +5,23 @@ export const AccountSchema = z.object({
   id: z.number(),
   name: z.string(),
   email: z.string(),
-  role: z.enum([Role.Owner, Role.Employee]),
+  role: z.string(),
   avatar: z.string().nullable(),
 });
 
 export type AccountType = z.TypeOf<typeof AccountSchema>;
 
-export const AccountListRes = z.object({
-  data: z.array(AccountSchema),
+export const AccountRes = z.object({
+  id: z.number(),
+  name: z.string(),
+  email: z.string(),
+  role: z.string(),
+  avatar: z.string().nullable(),
 });
+
+export type AccountResType = z.TypeOf<typeof AccountRes>;
+
+export const AccountListRes = z.array(AccountSchema);
 
 export type AccountListResType = z.TypeOf<typeof AccountListRes>;
 
@@ -69,4 +77,6 @@ export const UpdateEmployeeAccountBody = z
     }
   });
 
-export type UpdateEmployeeAccountBodyType = z.TypeOf<typeof UpdateEmployeeAccountBody>
+export type UpdateEmployeeAccountBodyType = z.TypeOf<
+  typeof UpdateEmployeeAccountBody
+>;

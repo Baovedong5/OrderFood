@@ -23,7 +23,7 @@ const UpdateProfileForm = () => {
   const avatarInputRef = useRef<HTMLInputElement>(null);
   const [file, setFile] = useState<File | null>(null);
 
-  const { data: session, update } = useSession();
+  const { data: session } = useSession();
   const token = session?.access_token as string;
 
   const { data, refetch } = useAccountMe(token);

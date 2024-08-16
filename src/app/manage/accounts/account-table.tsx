@@ -51,8 +51,14 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import AutoPagination from "@/components/auto-pagination";
+import {
+  useDeleteAccountMutation,
+  useGetAccountList,
+} from "@/queries/useAccount";
+import { useSession } from "next-auth/react";
+import { toast } from "@/components/ui/use-toast";
 
-type AccountItem = AccountListResType["data"][0];
+type AccountItem = AccountListResType[0];
 
 const AccountTableContext = createContext<{
   setEmployeeIdEdit: (value: number) => void;
@@ -77,7 +83,11 @@ export const columns: ColumnDef<AccountType>[] = [
     cell: ({ row }) => (
       <div>
         <Avatar className="aspect-square w-[100px] h-[100px] rounded-md object-cover">
-          <AvatarImage src={row.getValue("avatar")} />
+          <AvatarImage
+            src={`http://localhost:8080/images/avatar/${row.getValue(
+              "avatar"
+            )}`}
+          />
           <AvatarFallback className="rounded-none">
             {row.original.name}
           </AvatarFallback>
@@ -94,7 +104,10 @@ export const columns: ColumnDef<AccountType>[] = [
     accessorKey: "email",
     header: ({ column }) => {
       return (
-        <Button variant="ghost" onClick={() => column.getIsSorted() === "asc"}>
+        <Button
+          variant="ghost"
+          onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
+        >
           Email
           <RxCaretSort className="ml-2 h-4 w-4" />
         </Button>
@@ -146,6 +159,28 @@ function AlertDialogDeleteAccount({
   employeeDelete: AccountItem | null;
   setEmployeeDelete: (value: AccountItem | null) => void;
 }) {
+  const { mutateAsync } = useDeleteAccountMutation();
+
+  const { data: session } = useSession();
+  const token = session?.access_token as string;
+
+  const deleteAccount = async () => {
+    if (employeeDelete) {
+      const result = await mutateAsync({ token, id: employeeDelete.id });
+      if (result && result.data) {
+        setEmployeeDelete(null);
+        toast({
+          description: "Xóa nhân viên thành công",
+        });
+      } else {
+        toast({
+          description: "Xóa nhân viên thất bại",
+          variant: "destructive",
+        });
+      }
+    }
+  };
+
   return (
     <AlertDialog
       open={Boolean(employeeDelete)}
@@ -168,7 +203,9 @@ function AlertDialogDeleteAccount({
         </AlertDialogHeader>
         <AlertDialogFooter>
           <AlertDialogCancel>Hủy</AlertDialogCancel>
-          <AlertDialogAction>Tiếp tục</AlertDialogAction>
+          <AlertDialogAction onClick={deleteAccount}>
+            Tiếp tục
+          </AlertDialogAction>
         </AlertDialogFooter>
       </AlertDialogContent>
     </AlertDialog>
@@ -187,7 +224,13 @@ const AccountTable = () => {
     null
   );
 
-  const data: any[] = [];
+  const { data: session } = useSession();
+  const token = session?.access_token as string;
+
+  const accountListQuery = useGetAccountList(token);
+
+  const data = accountListQuery.data?.data ?? [];
+
   const [sorting, setSorting] = useState<SortingState>([]);
   const [columnFilters, setColumnFilters] = useState<ColumnFiltersState>([]);
   const [columnVisibility, setColumnVisibility] = useState<VisibilityState>({});
@@ -310,7 +353,7 @@ const AccountTable = () => {
         </div>
         <div className="flex items-center justify-end space-x-2 py-4">
           <div className="text-xs text-muted-foreground py-4 flex-1">
-            Hiển thị
+            Hiển thị &nbsp;
             <strong>
               {table.getPaginationRowModel().rows.length}
             </strong> trong <strong>{data.length}</strong> kết quả
