@@ -135,6 +135,7 @@ const EditEmployee = (props: IEditEmployee) => {
   };
 
   const reset = () => {
+    form.reset();
     setId(undefined);
     setFile(null);
   };
