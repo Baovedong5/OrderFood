@@ -27,14 +27,18 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { Textarea } from "@/components/ui/textarea";
+import { toast } from "@/components/ui/use-toast";
 import { DishStatus, DishStatusValues } from "@/constants/type";
 import { getVietnameseDishStatus } from "@/lib/utils";
+import { useGetDishQuery, useUpdateDishMutation } from "@/queries/useDish";
+import { useUploadMediaMutation } from "@/queries/useMedia";
 import {
   UpdateDishBody,
   UpdateDishBodyType,
 } from "@/schemaValidations/dish.schema";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { useMemo, useRef, useState } from "react";
+import { useSession } from "next-auth/react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { useForm } from "react-hook-form";
 import { LuUpload } from "react-icons/lu";
 
@@ -49,13 +53,21 @@ const EditDish = (props: IEditDishProps) => {
 
   const [file, setFile] = useState<File | null>(null);
   const imageInputRef = useRef<HTMLInputElement | null>(null);
+
+  const uploadMediaMutation = useUploadMediaMutation();
+  const updateDishMutation = useUpdateDishMutation();
+  const { data } = useGetDishQuery(id as number);
+
+  const { data: session } = useSession();
+  const token = session?.access_token as string;
+
   const form = useForm<UpdateDishBodyType>({
     resolver: zodResolver(UpdateDishBody),
     defaultValues: {
       name: "",
       description: "",
       price: 0,
-      image: "",
+      image: undefined,
       status: DishStatus.Unavailable,
     },
   });
@@ -68,12 +80,77 @@ const EditDish = (props: IEditDishProps) => {
     return image ? `http://localhost:8080/images/dish/${image}` : undefined;
   }, [file, image]);
 
+  useEffect(() => {
+    if (data) {
+      const { name, image, price, description, status } = data.data;
+      form.reset({
+        name,
+        image: image ?? undefined,
+        description,
+        price,
+        status,
+      });
+    }
+  }, [data, form]);
+
+  const onSubmit = async (values: UpdateDishBodyType) => {
+    if (updateDishMutation.isPending) return;
+
+    let body: UpdateDishBodyType & { id: number } = {
+      id: id as number,
+      ...values,
+    };
+
+    if (file) {
+      const formData = new FormData();
+      formData.append("image", file);
+      const uploadImageResult = await uploadMediaMutation.mutateAsync({
+        formData,
+        type: "dish",
+      });
+
+      if (uploadImageResult.error) {
+        toast({
+          description: "Ảnh không đúng định dạng hoặc quá lớn",
+          variant: "destructive",
+        });
+      }
+
+      const imageUrl = uploadImageResult.data.fileName;
+
+      body = {
+        ...body,
+        image: imageUrl,
+      };
+    }
+
+    const result = await updateDishMutation.mutateAsync({ token, body });
+
+    if (result && result.data) {
+      toast({
+        description: "Cập nhật món ăn thành công",
+      });
+      reset();
+      onSubmitSuccess && onSubmitSuccess();
+    } else {
+      toast({
+        description: "Cập nhật món ăn thất bại",
+        variant: "destructive",
+      });
+    }
+  };
+
+  const reset = () => {
+    setId(undefined);
+    setFile(null);
+  };
+
   return (
     <Dialog
       open={Boolean(id)}
       onOpenChange={(value) => {
         if (!value) {
-          setId(undefined);
+          reset();
         }
       }}
     >
@@ -89,6 +166,9 @@ const EditDish = (props: IEditDishProps) => {
             noValidate
             className="grid auto-rows-max items-start gap-4 md:gap-8"
             id="edit-dish-form"
+            onSubmit={form.handleSubmit(onSubmit, (e) => {
+              console.log(e);
+            })}
           >
             <div className="grid gap-4 py-4">
               <FormField
@@ -193,6 +273,7 @@ const EditDish = (props: IEditDishProps) => {
                         <Select
                           onValueChange={field.onChange}
                           defaultValue={field.value}
+                          value={field.value}
                         >
                           <FormControl>
                             <SelectTrigger>

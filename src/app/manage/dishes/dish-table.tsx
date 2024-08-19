@@ -49,6 +49,9 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import AutoPagination from "@/components/auto-pagination";
+import { useDeleteDishMutation, useDishListQuery } from "@/queries/useDish";
+import { useSession } from "next-auth/react";
+import { toast } from "@/components/ui/use-toast";
 
 type DishItem = DishListResType[0];
 
@@ -75,7 +78,9 @@ export const columns: ColumnDef<DishItem>[] = [
     cell: ({ row }) => (
       <div>
         <Avatar className="aspect-square w-[100px] h-[100px] rounded-md object-cover">
-          <AvatarImage src={row.getValue("image")} />
+          <AvatarImage
+            src={`http://localhost:8080/images/dish/${row.getValue("image")}`}
+          />
           <AvatarFallback className="rounded-none">
             {row.original.name}
           </AvatarFallback>
@@ -151,6 +156,29 @@ function AlertDialogDeleteDish({
   dishDelete: DishItem | null;
   setDishDelete: (value: DishItem | null) => void;
 }) {
+  const { mutateAsync } = useDeleteDishMutation();
+
+  const { data: session } = useSession();
+  const token = session?.access_token as string;
+
+  const deleteDish = async () => {
+    if (dishDelete) {
+      const result = await mutateAsync({ token, id: dishDelete.id });
+
+      if (result && result.data) {
+        setDishDelete(null);
+        toast({
+          description: "Xóa món ăn thành công",
+        });
+      } else {
+        toast({
+          description: "Xóa món ăn thất bại",
+          variant: "destructive",
+        });
+      }
+    }
+  };
+
   return (
     <AlertDialog
       open={Boolean(dishDelete)}
@@ -172,8 +200,8 @@ function AlertDialogDeleteDish({
           </AlertDialogDescription>
         </AlertDialogHeader>
         <AlertDialogFooter>
-          <AlertDialogCancel>Cancel</AlertDialogCancel>
-          <AlertDialogAction>Continue</AlertDialogAction>
+          <AlertDialogCancel>Hủy</AlertDialogCancel>
+          <AlertDialogAction onClick={deleteDish}>Xác nhận</AlertDialogAction>
         </AlertDialogFooter>
       </AlertDialogContent>
     </AlertDialog>
@@ -187,7 +215,11 @@ const DishTable = () => {
   const pageIndex = page - 1;
   const [dishIdEdit, setDishIdEdit] = useState<number | undefined>();
   const [dishDelete, setDishDelete] = useState<DishItem | null>(null);
-  const data: any[] = [];
+
+  const dishListQUery = useDishListQuery();
+
+  const data = dishListQUery.data?.data ?? [];
+
   const [sorting, setSorting] = useState<SortingState>([]);
   const [columnFilters, setColumnFilters] = useState<ColumnFiltersState>([]);
   const [columnVisibility, setColumnVisibility] = useState<VisibilityState>({});

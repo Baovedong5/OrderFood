@@ -66,6 +66,7 @@ const AddEmployee = () => {
     if (addAccountMutation.isPending) return;
 
     let body = values;
+    
     if (file) {
       const formData = new FormData();
       formData.append("image", file);

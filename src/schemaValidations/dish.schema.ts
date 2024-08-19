@@ -20,11 +20,7 @@ export const DishSchema = z.object({
   status: z.enum(DishStatusValues),
 });
 
-export const DishRes = z.object({
-  data: DishSchema,
-});
-
-export type DishResType = z.TypeOf<typeof DishRes>;
+export type DishResType = z.TypeOf<typeof DishSchema>;
 
 export const DishListRes = z.array(DishSchema);
 

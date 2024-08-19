@@ -204,7 +204,7 @@ function AlertDialogDeleteAccount({
         <AlertDialogFooter>
           <AlertDialogCancel>Hủy</AlertDialogCancel>
           <AlertDialogAction onClick={deleteAccount}>
-            Tiếp tục
+            Xác nhận
           </AlertDialogAction>
         </AlertDialogFooter>
       </AlertDialogContent>
@@ -290,7 +290,7 @@ const AccountTable = () => {
         />
         <div className="flex items-center py-4">
           <Input
-            placeholder="Filter emails..."
+            placeholder="Lọc email"
             value={(table.getColumn("email")?.getFilterValue() as string) ?? ""}
             onChange={(e) =>
               table.getColumn("email")?.setFilterValue(e.target.value)

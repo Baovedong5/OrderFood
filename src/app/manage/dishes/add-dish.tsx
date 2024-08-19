@@ -27,13 +27,17 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { Textarea } from "@/components/ui/textarea";
+import { toast } from "@/components/ui/use-toast";
 import { DishStatus, DishStatusValues } from "@/constants/type";
 import { getVietnameseDishStatus } from "@/lib/utils";
+import { useAddDishMutation } from "@/queries/useDish";
+import { useUploadMediaMutation } from "@/queries/useMedia";
 import {
   CreateDishBody,
   CreateDishBodyType,
 } from "@/schemaValidations/dish.schema";
 import { zodResolver } from "@hookform/resolvers/zod";
+import { useSession } from "next-auth/react";
 import { useMemo, useRef, useState } from "react";
 import { useForm } from "react-hook-form";
 import { LuPlusCircle, LuUpload } from "react-icons/lu";
@@ -41,6 +45,12 @@ import { LuPlusCircle, LuUpload } from "react-icons/lu";
 const AddDish = () => {
   const [file, setFile] = useState<File | null>(null);
   const [open, setOpen] = useState(false);
+
+  const addDishMutation = useAddDishMutation();
+  const uploadMediaMutation = useUploadMediaMutation();
+
+  const { data: session } = useSession();
+  const token = session?.access_token as string;
 
   const imageInputRef = useRef<HTMLInputElement | null>(null);
 
@@ -50,12 +60,14 @@ const AddDish = () => {
       name: "",
       description: "",
       price: 0,
-      image: "",
+      image: undefined,
       status: DishStatus.Unavailable,
     },
   });
 
   const image = form.watch("image");
+
+  console.log(">>> image", image);
 
   const previewAvatar = useMemo(() => {
     if (file) {
@@ -65,8 +77,69 @@ const AddDish = () => {
     return image ? `http://localhost:8080/images/dish/${image}` : undefined;
   }, [file, image]);
 
+  console.log(">>> file", file);
+
+  const reset = () => {
+    form.reset();
+    setFile(null);
+  };
+
+  const onSubmit = async (values: CreateDishBodyType) => {
+    console.log("values", values);
+
+    if (addDishMutation.isPending) return;
+
+    let body = values;
+
+    if (file) {
+      const formData = new FormData();
+      formData.append("image", file);
+      const uploadImageResult = await uploadMediaMutation.mutateAsync({
+        formData,
+        type: "dish",
+      });
+
+      if (uploadImageResult.error) {
+        toast({
+          description: "Ảnh không đúng định dạng hoặc quá lớn",
+          variant: "destructive",
+        });
+      }
+
+      const imageUrl = uploadImageResult.data.fileName;
+
+      body = { ...values, image: imageUrl };
+    }
+
+    const result = await addDishMutation.mutateAsync({
+      token,
+      body,
+    });
+
+    if (result && result.data) {
+      toast({
+        description: "Thêm món ăn thành công",
+      });
+      reset();
+      setOpen(false);
+    } else {
+      toast({
+        description: "Thêm món ăn thất bại",
+        variant: "destructive",
+      });
+    }
+  };
+
   return (
-    <Dialog onOpenChange={setOpen} open={open}>
+    <Dialog
+      onOpenChange={(value) => {
+        if (!value) {
+          reset();
+        }
+        setOpen(value);
+      }}
+      open={open}
+    >
       <DialogTrigger asChild>
         <Button size="sm" className="h-7 gap-1">
           <LuPlusCircle className="h-3.5 w-3.5" />
@@ -84,6 +157,10 @@ const AddDish = () => {
             noValidate
             className="grid auto-rows-max items-start gap-4 md:gap-8"
             id="add-dish-form"
+            onSubmit={form.handleSubmit(onSubmit, (e) => {
+              console.log(e);
+            })}
+            onReset={reset}
           >
             <div className="grid gap-4 py-4">
               <FormField
@@ -106,6 +183,9 @@ const AddDish = () => {
                           const file = e.target.files?.[0];
                           if (file) {
                             setFile(file);
+                            field.onChange(
+                              "http://localhost:3000/" + file.name
+                            );
                           }
                         }}
                         className="hidden"
