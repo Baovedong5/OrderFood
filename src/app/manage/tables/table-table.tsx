@@ -48,6 +48,10 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import AutoPagination from "@/components/auto-pagination";
+import { useDeleteTableMutation, useTableListQuery } from "@/queries/useTable";
+import QRCodeTable from "@/components/qrcode-table";
+import { useSession } from "next-auth/react";
+import { toast } from "@/components/ui/use-toast";
 
 type TableItem = TableListResType[0];
 
@@ -70,6 +74,10 @@ export const columns: ColumnDef<TableItem>[] = [
     cell: ({ row }) => (
       <div className="capitalize">{row.getValue("number")}</div>
     ),
+    filterFn: (rows, columnId, filterValue) => {
+      if (!filterValue) return true;
+      return String(filterValue) === String(rows.getValue("number"));
+    },
   },
   {
     accessorKey: "capacity",
@@ -88,7 +96,14 @@ export const columns: ColumnDef<TableItem>[] = [
   {
     accessorKey: "token",
     header: "QR Code",
-    cell: ({ row }) => <div>{row.getValue("number")}</div>,
+    cell: ({ row }) => (
+      <div>
+        <QRCodeTable
+          token={row.getValue("token")}
+          tableNumber={row.getValue("number")}
+        />
+      </div>
+    ),
   },
   {
     id: "actions",
@@ -129,6 +144,29 @@ function AlertDialogDeleteTable({
   tableDelete: TableItem | null;
   setTableDelete: (value: TableItem | null) => void;
 }) {
+  const { mutateAsync } = useDeleteTableMutation();
+
+  const { data: session } = useSession();
+  const token = session?.access_token as string;
+
+  const deleteTable = async () => {
+    if (tableDelete) {
+      const result = await mutateAsync({ token, id: tableDelete.number });
+
+      if (result && result.data) {
+        setTableDelete(null);
+        toast({
+          description: "Xóa món ăn thành công",
+        });
+      } else {
+        toast({
+          description: "Xóa món ăn thất bại",
+          variant: "destructive",
+        });
+      }
+    }
+  };
+
   return (
     <AlertDialog
       open={Boolean(tableDelete)}
@@ -151,7 +189,7 @@ function AlertDialogDeleteTable({
         </AlertDialogHeader>
         <AlertDialogFooter>
           <AlertDialogCancel>Hủy</AlertDialogCancel>
-          <AlertDialogAction>Xác nhận</AlertDialogAction>
+          <AlertDialogAction onClick={deleteTable}>Xác nhận</AlertDialogAction>
         </AlertDialogFooter>
       </AlertDialogContent>
     </AlertDialog>
@@ -164,10 +202,11 @@ const TableTable = () => {
   const searchParam = useSearchParams();
   const page = searchParam.get("page") ? Number(searchParam.get("page")) : 1;
   const pageIndex = page - 1;
-
   const [tableIdEdit, setTableIdEdit] = useState<number | undefined>();
   const [tableDelete, setTableDelete] = useState<TableItem | null>(null);
-  const data: any[] = [];
+
+  const tableListQuery = useTableListQuery();
+  const data = tableListQuery.data?.data ?? [];
   const [sorting, setSorting] = useState<SortingState>([]);
   const [columnFilters, setColumnFilters] = useState<ColumnFiltersState>([]);
   const [columnVisibility, setColumnVisibility] = useState<VisibilityState>({});

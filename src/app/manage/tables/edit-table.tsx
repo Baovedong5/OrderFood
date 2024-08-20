@@ -1,5 +1,6 @@
 "use client";
 
+import QRCodeTable from "@/components/qrcode-table";
 import { Button } from "@/components/ui/button";
 import {
   Dialog,
@@ -25,14 +26,18 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { Switch } from "@/components/ui/switch";
+import { toast } from "@/components/ui/use-toast";
 import { TableStatus, TableStatusValues } from "@/constants/type";
 import { getTableLink, getVietnameseTableStatus } from "@/lib/utils";
+import { useGetTableQuery, useUpdateTableMutation } from "@/queries/useTable";
 import {
   UpdateTableBody,
   UpdateTableBodyType,
 } from "@/schemaValidations/table.schema";
 import { zodResolver } from "@hookform/resolvers/zod";
+import { useSession } from "next-auth/react";
 import Link from "next/link";
+import { useEffect } from "react";
 import { useForm } from "react-hook-form";
 
 interface IEditTableProps {
@@ -44,6 +49,12 @@ interface IEditTableProps {
 const EditTable = (props: IEditTableProps) => {
   const { id, setId, onSubmitSuccess } = props;
 
+  const { data: session } = useSession();
+  const token = session?.access_token as string;
+
+  const { data } = useGetTableQuery(id as number);
+  const updateTableMutation = useUpdateTableMutation();
+
   const form = useForm<UpdateTableBodyType>({
     resolver: zodResolver(UpdateTableBody),
     defaultValues: {
@@ -53,14 +64,51 @@ const EditTable = (props: IEditTableProps) => {
     },
   });
 
-  const tableNumber = 0;
+  useEffect(() => {
+    if (data) {
+      const { capacity, status } = data.data;
+      form.reset({
+        capacity,
+        status,
+        changeToken: form.getValues("changeToken"),
+      });
+    }
+  }, [data, form]);
+
+  const reset = () => {
+    setId(undefined);
+  };
+
+  const onSubmit = async (values: UpdateTableBodyType) => {
+    if (updateTableMutation.isPending) return;
+
+    let body: UpdateTableBodyType & { id: number } = {
+      id: id as number,
+      ...values,
+    };
+
+    const result = await updateTableMutation.mutateAsync({ token, body });
+
+    if (result && result.data) {
+      toast({
+        description: "Cập nhật bàn ăn thành công",
+      });
+      reset();
+      onSubmitSuccess && onSubmitSuccess();
+    } else {
+      toast({
+        description: "Cập nhật bàn ăn thất bại",
+        variant: "destructive",
+      });
+    }
+  };
 
   return (
     <Dialog
       open={Boolean(id)}
       onOpenChange={(value) => {
         if (!value) {
-          setId(undefined);
+          reset();
         }
       }}
     >
@@ -79,6 +127,10 @@ const EditTable = (props: IEditTableProps) => {
             noValidate
             className="grid auto-rows-max items-start gap-4 md:gap-8"
             id="edit-table-form"
+            onSubmit={form.handleSubmit(onSubmit, (e) => {
+              console.log(e);
+            })}
+            onReset={reset}
           >
             <div className="grid gap-4 py-4">
               <FormItem>
@@ -89,7 +141,7 @@ const EditTable = (props: IEditTableProps) => {
                       id="number"
                       type="number"
                       className="w-full"
-                      value={tableNumber}
+                      value={data?.data.number ?? 0}
                       readOnly
                     />
                     <FormMessage />
@@ -122,11 +174,12 @@ const EditTable = (props: IEditTableProps) => {
                 render={({ field }) => (
                   <FormItem>
                     <div className="grid grid-cols-4 items-center justify-items-start gap-4">
-                      <Label htmlFor="description">Trạng thái</Label>
+                      <Label htmlFor="status">Trạng thái</Label>
                       <div className="col-span-3 w-full space-y-2">
                         <Select
                           onValueChange={field.onChange}
                           defaultValue={field.value}
+                          value={field.value}
                         >
                           <FormControl>
                             <SelectTrigger>
@@ -173,26 +226,35 @@ const EditTable = (props: IEditTableProps) => {
               <FormItem>
                 <div className="grid grid-cols-4 items-center justify-items-start gap-4">
                   <Label>QR Code</Label>
-                  <div className="col-span-3 w-full space-y-2"></div>
+                  <div className="col-span-3 w-full space-y-2">
+                    {data && (
+                      <QRCodeTable
+                        token={data.data.token}
+                        tableNumber={data.data.number}
+                      />
+                    )}
+                  </div>
                 </div>
               </FormItem>
               <FormItem>
                 <div className="grid grid-cols-4 items-center justify-items-start gap-4">
                   <Label>URL gọi món</Label>
                   <div className="col-span-3 w-full space-y-2">
-                    <Link
-                      href={getTableLink({
-                        token: "123123123",
-                        tableNumber: tableNumber,
-                      })}
-                      target="_blank"
-                      className="break-all"
-                    >
-                      {getTableLink({
-                        token: "123123123",
-                        tableNumber: tableNumber,
-                      })}
-                    </Link>
+                    {data && (
+                      <Link
+                        href={getTableLink({
+                          token: data.data.token,
+                          tableNumber: data.data.number,
+                        })}
+                        target="_blank"
+                        className="break-all"
+                      >
+                        {getTableLink({
+                          token: data.data.token,
+                          tableNumber: data.data.number,
+                        })}
+                      </Link>
+                    )}
                   </div>
                 </div>
               </FormItem>
