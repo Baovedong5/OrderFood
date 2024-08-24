@@ -11,6 +11,11 @@ const dishApiRequest = {
     http<IBackendRes<DishListResType>>({
       method: "GET",
       url: "/api/v1/dishs",
+      nextOption: {
+        next: {
+          tags: ["dishes"],
+        },
+      },
     }),
 
   getDish: (id: number) =>

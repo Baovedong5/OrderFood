@@ -1,5 +1,6 @@
 "use client";
 
+import revalidateApiRequest from "@/apiRequests/revalidate";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
 import {
@@ -115,6 +116,7 @@ const AddDish = () => {
       token,
       body,
     });
+    await revalidateApiRequest("dishes");
 
     if (result && result.data) {
       toast({

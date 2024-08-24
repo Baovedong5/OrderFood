@@ -1,5 +1,6 @@
 "use client";
 
+import revalidateApiRequest from "@/apiRequests/revalidate";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
 import {
@@ -125,7 +126,7 @@ const EditDish = (props: IEditDishProps) => {
     }
 
     const result = await updateDishMutation.mutateAsync({ token, body });
-
+    await revalidateApiRequest("dishes");
     if (result && result.data) {
       toast({
         description: "Cập nhật món ăn thành công",
