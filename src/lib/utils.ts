@@ -1,6 +1,7 @@
 import { DishStatus, TableStatus } from "@/constants/type";
 import { type ClassValue, clsx } from "clsx";
 import { twMerge } from "tailwind-merge";
+import jwt from "jsonwebtoken";
 
 export function cn(...inputs: ClassValue[]) {
   return twMerge(clsx(inputs));
@@ -49,4 +50,8 @@ export const formatCurrency = (number: number) => {
     style: "currency",
     currency: "VND",
   }).format(number);
+};
+
+export const decodeToken = (token: string) => {
+  return jwt.decode(token) as { role: string };
 };

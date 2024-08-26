@@ -4,6 +4,8 @@ export const Role = {
   Guest: "Guest",
 } as const;
 
+export type RoleType = (typeof Role)[keyof typeof Role];
+
 export const DishStatus = {
   Available: "Available",
   Unavailable: "Unavailable",

@@ -32,7 +32,7 @@ const LoginForm = () => {
   });
 
   const onSubmit = async (data: LoginBodyType) => {
-    const res = await signIn("credentials", {
+    const res = await signIn("credentials-admin", {
       username: data.username,
       password: data.password,
       redirect: false,

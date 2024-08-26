@@ -1,35 +1,44 @@
 import { getToken } from "next-auth/jwt";
 import { withAuth } from "next-auth/middleware";
 import { NextFetchEvent, NextRequest, NextResponse } from "next/server";
+import { decodeToken } from "./lib/utils";
+import { Role } from "./constants/type";
 
-export default async function middleware(
-  req: NextRequest,
-  event: NextFetchEvent
-) {
-  const token = await getToken({ req });
+export default withAuth(
+  async function middleware(req: NextRequest, event: NextFetchEvent) {
+    const token = await getToken({ req });
 
-  const isAuthenticated = Boolean(token);
+    const access_token = token?.accessToken as string;
 
-  //Nếu user chưa đăng nhập thì không cho vào trang private
-  if (req.nextUrl.pathname.startsWith("/manage") && !isAuthenticated) {
-    return NextResponse.redirect(new URL("/login", req.url));
-  }
+    if (req.nextUrl.pathname.startsWith("/manage") && !token) {
+      return NextResponse.redirect(new URL("/login", req.url));
+    }
 
-  //User đăng nhập rồi thì không cho vào trang login nữa
-  if (req.nextUrl.pathname.startsWith("/login") && isAuthenticated) {
-    return NextResponse.redirect(new URL("/", req.url));
-  }
+    if (req.nextUrl.pathname.startsWith("/login") && token) {
+      return NextResponse.redirect(new URL("/", req.url));
+    }
 
-  const authMiddleware = withAuth({
+    const role = decodeToken(access_token)?.role;
+
+    //Guest nhưng cố vào route owner
+    const isGuestGoToManagePath =
+      role === Role.Guest && req.nextUrl.pathname.startsWith("/manage");
+    //Không phải guest nhưng cố tình vào route guest
+    const isNotGuestGoToGuestPath =
+      role !== Role.Guest && req.nextUrl.pathname.startsWith("/guest");
+    if (isGuestGoToManagePath || isNotGuestGoToGuestPath) {
+      return NextResponse.redirect(new URL("/", req.url));
+    }
+
+    return NextResponse.next();
+  },
+  {
     pages: {
-      signIn: `/login`,
+      signIn: "/login",
     },
-  });
-
-  // @ts-expect-error
-  return authMiddleware(req, event);
-}
+  }
+);
 
 export const config = {
-  matcher: ["/manage/:path*", "/login"],
+  matcher: ["/manage/:path*", "/guest/:path*", "/login"],
 };

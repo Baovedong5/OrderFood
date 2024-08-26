@@ -30,19 +30,19 @@ export default function RootLayout({
           fontSans.variable
         )}
       >
-        <AppProvider>
-          <ThemeProvider
-            attribute="class"
-            defaultTheme="system"
-            enableSystem
-            disableTransitionOnChange
-          >
-            <NextAuthWrapper>
+        <NextAuthWrapper>
+          <AppProvider>
+            <ThemeProvider
+              attribute="class"
+              defaultTheme="system"
+              enableSystem
+              disableTransitionOnChange
+            >
               {children}
               <Toaster />
-            </NextAuthWrapper>
-          </ThemeProvider>
-        </AppProvider>
+            </ThemeProvider>
+          </AppProvider>
+        </NextAuthWrapper>
       </body>
     </html>
   );
