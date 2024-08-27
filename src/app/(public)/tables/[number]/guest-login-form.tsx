@@ -23,8 +23,6 @@ const GuestLoginForm = () => {
   const params = useParams();
   const router = useRouter();
 
-  const { setRole } = useAppContext();
-
   const tableNumber = Number(params.number);
   const token = searchParams.get("token");
 
@@ -52,7 +50,6 @@ const GuestLoginForm = () => {
     });
 
     if (!res?.error) {
-      setRole("Guest");
       router.push("/guest/menu");
     } else {
       toast({

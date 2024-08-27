@@ -39,7 +39,7 @@ export default function AppProvider({
 }) {
   const [role, setRoleState] = useState<RoleType | undefined>();
   const { data: session } = useSession();
-  
+
   useEffect(() => {
     const token = session?.access_token as string;
 
@@ -47,7 +47,7 @@ export default function AppProvider({
       const role = decodeToken(token).role as RoleType;
       setRoleState(role);
     }
-  }, []);
+  }, [session]);
 
   const setRole = useCallback((role?: RoleType | undefined) => {
     setRoleState(role);

@@ -2,12 +2,31 @@ import DarkModeToggle from "@/components/dark-mode-toggle";
 import DropdownAvatar from "./dropdown-avatar";
 import NavLinks from "./nav-links";
 import MobileNavLinks from "./mobile-nav-links";
+import { getServerSession } from "next-auth";
+import { authOptions } from "../api/auth/auth.options";
+import { redirect } from "next/navigation";
+import { decodeToken } from "@/lib/utils";
+import { Role } from "@/constants/type";
 
-const Layout = ({
+const Layout = async ({
   children,
 }: Readonly<{
   children: React.ReactNode;
 }>) => {
+  const session = await getServerSession(authOptions);
+
+  const access_token = session?.access_token as string;
+
+  const role = decodeToken(access_token)?.role;
+
+  if (!session) {
+    redirect("/login");
+  }
+
+  if(role === Role.Guest) {
+    redirect("/");
+  }
+
   return (
     <div className="flex min-h-screen w-full flex-col bg-muted/40">
       <NavLinks />
