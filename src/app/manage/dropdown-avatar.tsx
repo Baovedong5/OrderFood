@@ -13,10 +13,8 @@ import {
 import { useAccountMe } from "@/queries/useAccount";
 import { signOut, useSession } from "next-auth/react";
 import Link from "next/link";
-import { useRouter } from "next/navigation";
 
 const DropdownAvatar = () => {
-  const router = useRouter();
   const { data: session } = useSession();
 
   const token = session?.access_token as string;
@@ -25,8 +23,11 @@ const DropdownAvatar = () => {
 
   const account = data?.data;
 
-  const redirect = () => {
-    router.push("/");
+  const logout = () => {
+    signOut({
+      callbackUrl: "/",
+    });
+    localStorage.removeItem("access_token");
   };
 
   return (
@@ -62,14 +63,7 @@ const DropdownAvatar = () => {
         </DropdownMenuItem>
         <DropdownMenuItem>Hỗ trợ</DropdownMenuItem>
         <DropdownMenuSeparator />
-        <DropdownMenuItem
-          onClick={() => {
-            signOut();
-            redirect();
-          }}
-        >
-          Đăng xuất
-        </DropdownMenuItem>
+        <DropdownMenuItem onClick={logout}>Đăng xuất</DropdownMenuItem>
       </DropdownMenuContent>
     </DropdownMenu>
   );

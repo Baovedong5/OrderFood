@@ -1,6 +1,5 @@
 "use client";
 
-import { useAppContext } from "@/components/app-provider";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Form, FormField, FormItem, FormMessage } from "@/components/ui/form";
@@ -11,9 +10,8 @@ import {
   GuestLoginBody,
   GuestLoginBodyType,
 } from "@/schemaValidations/guest.schema";
-import { http } from "@/utils/http";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { signIn } from "next-auth/react";
+import { getSession, signIn } from "next-auth/react";
 import { useParams, useRouter, useSearchParams } from "next/navigation";
 import { useEffect } from "react";
 import { useForm } from "react-hook-form";
@@ -50,6 +48,10 @@ const GuestLoginForm = () => {
     });
 
     if (!res?.error) {
+      const session = await getSession();
+      if (session && session.access_token) {
+        localStorage.setItem("access_token", session.access_token);
+      }
       router.push("/guest/menu");
     } else {
       toast({

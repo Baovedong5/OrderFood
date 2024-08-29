@@ -17,17 +17,11 @@ import { toast } from "@/components/ui/use-toast";
 import { LoginBody, LoginBodyType } from "@/schemaValidations/auth.schema";
 import Link from "next/link";
 import { BiArrowBack } from "react-icons/bi";
-import { signIn, useSession } from "next-auth/react";
+import { getSession, signIn } from "next-auth/react";
 import { useRouter } from "next/navigation";
-import { useAppContext } from "@/components/app-provider";
-import { RoleType } from "@/constants/type";
 
 const LoginForm = () => {
   const route = useRouter();
-  const { data: session } = useSession();
-  const role = session?.user?.role as RoleType;
-
-  const { setRole } = useAppContext();
 
   const form = useForm<LoginBodyType>({
     resolver: zodResolver(LoginBody),
@@ -45,10 +39,13 @@ const LoginForm = () => {
     });
 
     if (!res?.error) {
+      const session = await getSession();
+      if (session && session.access_token) {
+        localStorage.setItem("access_token", session.access_token);
+      }
       toast({
         description: "Đăng nhập thành công",
       });
-      setRole(role);
       route.push("/manage/dashboard");
     } else {
       toast({

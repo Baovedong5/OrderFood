@@ -16,6 +16,13 @@ async function refreshAccessToken(token: JWT) {
   });
 
   if (res && res.data) {
+    //Xoa access_token cu
+    localStorage.removeItem("access_token");
+
+    //Cap nhat token moi
+    const newAccessToken = res.data?.access_token ?? "";
+    localStorage.setItem("access_token", newAccessToken);
+
     return {
       ...token,
       access_token: res.data?.access_token ?? "",
@@ -46,6 +53,13 @@ async function refreshAccessTokenGuest(token: JWT) {
   });
 
   if (res && res.data) {
+    //Xoa access_token cu
+    localStorage.removeItem("access_token");
+
+    //Cap nhat token moi
+    const newAccessToken = res.data?.access_token ?? "";
+    localStorage.setItem("access_token", newAccessToken);
+
     return {
       ...token,
       access_token_guest: res.data?.access_token_guest ?? "",
@@ -56,7 +70,7 @@ async function refreshAccessTokenGuest(token: JWT) {
           process.env.TOKEN_EXPIRE_UNIT as any
         )
         .unix(),
-      error: "",
+      errorGuest: "",
     };
   } else {
     return {
@@ -156,17 +170,13 @@ export const authOptions: AuthOptions = {
         }
       }
 
-      const accessExpire = token?.access_expire
-        ? dayjs.unix(token.access_expire as number)
-        : dayjs(0);
+      const isTimeAfter = dayjs(dayjs(new Date())).isAfter(
+        dayjs.unix((token?.access_expire as number) ?? 0)
+      );
 
-      const isTimeAfter = dayjs().isAfter(accessExpire);
-
-      const accessGuestExpire = token?.access_expire_guest
-        ? dayjs.unix(token.access_expire_guest as number)
-        : dayjs(0);
-
-      const isTimeAfterGuest = dayjs().isAfter(accessGuestExpire);
+      const isTimeAfterGuest = dayjs(dayjs(new Date())).isAfter(
+        dayjs.unix((token?.access_expire_guest as number) ?? 0)
+      );
 
       if (isTimeAfterGuest) {
         return refreshAccessTokenGuest(token);

@@ -10,11 +10,9 @@ const guestApiRequest = {
     http<IBackendRes<GuestCreateOrdersResType>>({
       url: "/api/v1/guests/orders",
       method: "POST",
-      body: {
-        ...body,
-      },
+      body: body,
       headers: {
-        Authorization: `Bearer ${token})}`,
+        Authorization: `Bearer ${token}`,
       },
     }),
 
@@ -23,7 +21,7 @@ const guestApiRequest = {
       url: "/api/v1/guests/orders",
       method: "GET",
       headers: {
-        Authorization: `Bearer ${token})}`,
+        Authorization: `Bearer ${token}`,
       },
     }),
 };

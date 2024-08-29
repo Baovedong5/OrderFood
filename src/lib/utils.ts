@@ -1,4 +1,4 @@
-import { DishStatus, TableStatus } from "@/constants/type";
+import { DishStatus, OrderStatus, TableStatus } from "@/constants/type";
 import { type ClassValue, clsx } from "clsx";
 import { twMerge } from "tailwind-merge";
 import jwt from "jsonwebtoken";
@@ -30,6 +30,23 @@ export const getVietnameseTableStatus = (
       return "Đã đặt";
     default:
       return "Ẩn";
+  }
+};
+
+export const getVietnameseOrderStatus = (
+  status: (typeof OrderStatus)[keyof typeof OrderStatus]
+) => {
+  switch (status) {
+    case OrderStatus.Delivered:
+      return "Đã giao";
+    case OrderStatus.Paid:
+      return "Đã thanh toán";
+    case OrderStatus.Pending:
+      return "Chờ xác nhận";
+    case OrderStatus.Processing:
+      return "Đang xử lý";
+    default:
+      return "Từ chối";
   }
 };
 

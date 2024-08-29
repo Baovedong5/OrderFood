@@ -22,6 +22,11 @@ const menuItems: {
     role: [Role.Guest],
   },
   {
+    title: "Đơn hàng",
+    href: "/guest/orders",
+    role: [Role.Guest],
+  },
+  {
     title: "Đăng nhập",
     href: "/login",
     hideWhenLogin: true,
@@ -58,7 +63,7 @@ const NavItems = ({ className }: { className?: string }) => {
       {role && (
         <div
           className={cn(className, "cursor-pointer")}
-          onClick={() => signOut()}
+          onClick={() => signOut({ callbackUrl: "/" })}
         >
           Đăng xuất
         </div>
