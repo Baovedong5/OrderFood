@@ -2,11 +2,12 @@ import {
   GetOrderDetailResType,
   GetOrderResType,
   GetOrdersQueryParamsType,
+  PayGuestOrderResType,
+  PayGuestOrdersBodyType,
   UpdateOrderBodyType,
   UpdateOrderResType,
 } from "@/schemaValidations/order.schema";
 import { http } from "@/utils/http";
-import { toDate } from "date-fns";
 
 const orderApiRequest = {
   getOrderList: (token: string, queryParams?: GetOrdersQueryParamsType) =>
@@ -41,6 +42,16 @@ const orderApiRequest = {
     http<IBackendRes<GetOrderDetailResType>>({
       url: `/api/v1/orders/${orderNumber}`,
       method: "GET",
+      headers: {
+        Authorization: `Bearer ${token}`,
+      },
+    }),
+
+  pay: (token: string, body: PayGuestOrdersBodyType) =>
+    http<IBackendRes<PayGuestOrderResType>>({
+      url: "/api/v1/orders/pay",
+      method: "POST",
+      body: body,
       headers: {
         Authorization: `Bearer ${token}`,
       },

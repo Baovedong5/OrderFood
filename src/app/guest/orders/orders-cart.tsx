@@ -7,7 +7,10 @@ import { OrderStatus } from "@/constants/type";
 import socket from "@/lib/socket";
 import { formatCurrency, getVietnameseOrderStatus } from "@/lib/utils";
 import { useGetOrderListQuery } from "@/queries/useGuest";
-import { UpdateOrderResType } from "@/schemaValidations/order.schema";
+import {
+  PayGuestOrderResType,
+  UpdateOrderResType,
+} from "@/schemaValidations/order.schema";
 import { useSession } from "next-auth/react";
 import Image from "next/image";
 import { useEffect, useMemo } from "react";
@@ -90,16 +93,26 @@ const OrdersCart = () => {
       refetch();
     }
 
+    function onPayment(data: PayGuestOrderResType) {
+      const { guest } = data[0];
+      toast({
+        description: `${guest?.name} tại bàn ${guest?.tableNumber} thanh toán thành công ${data.length} đơn`,
+      });
+      refetch();
+    }
+
     function onDisconnect() {}
 
     socket.on("connect", onConnect);
     socket.on("disconnect", onDisconnect);
     socket.on("update-order", onUpdateOrder);
+    socket.on("payment", onPayment);
 
     return () => {
       socket.off("connect", onConnect);
       socket.off("disconnect", onDisconnect);
       socket.off("update-order", onUpdateOrder);
+      socket.off("payment", onPayment);
     };
   }, [refetch]);
 

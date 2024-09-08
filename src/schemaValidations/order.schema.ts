@@ -103,3 +103,13 @@ export const CreateOrderBody = z
   .strict();
 
 export type CreateOrderBodyType = z.TypeOf<typeof CreateOrderBody>;
+
+export const PayGuestOrdersBody = z.object({
+  guestId: z.number(),
+});
+
+export type PayGuestOrdersBodyType = z.TypeOf<typeof PayGuestOrdersBody>;
+
+export const PayGuestOrderRes = GetOrderRes;
+
+export type PayGuestOrderResType = z.TypeOf<typeof PayGuestOrderRes>;
