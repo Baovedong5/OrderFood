@@ -25,10 +25,10 @@ export const useGetOrderListQuery = (
   });
 };
 
-export const useGetOrderDetailQuery = (token: string, orderNumber: number) => {
+export const useGetOrderDetailQuery = (token: string, id: number) => {
   return useQuery({
-    queryKey: ["orders", orderNumber, token],
-    queryFn: () => orderApiRequest.getOrderDetail(token, orderNumber),
-    enabled: !!orderNumber,
+    queryKey: ["orders", id, token],
+    queryFn: () => orderApiRequest.getOrderDetail(token, id),
+    enabled: !!id,
   });
 };

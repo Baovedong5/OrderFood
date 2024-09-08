@@ -51,9 +51,27 @@ export const GetOrdersQueryParams = z.object({
 export type GetOrdersQueryParamsType = z.TypeOf<typeof GetOrdersQueryParams>;
 
 export const GetOrderDetailRes = z.object({
-  data: OrderSchema.extend({
-    table: TableSchema,
-  }),
+  id: z.number(),
+  guestId: z.number().nullable(),
+  guest: z
+    .object({
+      id: z.number(),
+      name: z.string(),
+      tableNumber: z.number().nullable(),
+      createdAt: z.date(),
+      updatedAt: z.date(),
+    })
+    .nullable(),
+  tableNumber: z.number().nullable(),
+  dishSnapshotId: z.number(),
+  dishSnapshot: DishSnapshotSchema,
+  quantity: z.number(),
+  orderHandlerId: z.number().nullable(),
+  orderHandler: AccountSchema.nullable(),
+  status: z.enum(OrderStatusValues),
+  createdAt: z.date(),
+  updatedAt: z.date(),
+  table: TableSchema,
 });
 
 export type GetOrderDetailResType = z.TypeOf<typeof GetOrderDetailRes>;

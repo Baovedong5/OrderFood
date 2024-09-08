@@ -39,7 +39,7 @@ const orderApiRequest = {
 
   getOrderDetail: (token: string, orderNumber: number) =>
     http<IBackendRes<GetOrderDetailResType>>({
-      url: `api/v1/orders/${orderNumber}`,
+      url: `/api/v1/orders/${orderNumber}`,
       method: "GET",
       headers: {
         Authorization: `Bearer ${token}`,
