@@ -1,5 +1,6 @@
 import orderApiRequest from "@/apiRequests/order";
 import {
+  CreateOrderBodyType,
   GetOrdersQueryParamsType,
   PayGuestOrdersBodyType,
   UpdateOrderBodyType,
@@ -38,5 +39,12 @@ export const usePayForGuestMutation = () => {
   return useMutation({
     mutationFn: (data: { token: string; body: PayGuestOrdersBodyType }) =>
       orderApiRequest.pay(data.token, data.body),
+  });
+};
+
+export const useCreateOrderMutation = () => {
+  return useMutation({
+    mutationFn: (data: { token: string; body: CreateOrderBodyType }) =>
+      orderApiRequest.createOrders(data.token, data.body),
   });
 };

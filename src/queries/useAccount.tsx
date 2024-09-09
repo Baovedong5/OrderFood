@@ -1,6 +1,8 @@
 import accountApiRequest from "@/apiRequests/account";
 import {
   CreateEmployeeAccountBodyType,
+  CreateGuestBodyType,
+  GetGuestListQueryParamsType,
   UpdateEmployeeAccountBodyType,
 } from "@/schemaValidations/account.schema";
 import {
@@ -91,5 +93,23 @@ export const useDeleteAccountMutation = () => {
         queryKey: ["accounts"],
       });
     },
+  });
+};
+
+export const useGetGuestListQuery = (
+  token: string,
+  queryParams: GetGuestListQueryParamsType
+) => {
+  return useQuery({
+    queryKey: ["guest-list", token, queryParams],
+    queryFn: () => accountApiRequest.guestList(token, queryParams),
+    enabled: !!token,
+  });
+};
+
+export const useCreateGuestMutation = () => {
+  return useMutation({
+    mutationFn: (data: { token: string; body: CreateGuestBodyType }) =>
+      accountApiRequest.createGuest(data.token, data.body),
   });
 };

@@ -2,6 +2,10 @@ import {
   AccountListResType,
   AccountResType,
   CreateEmployeeAccountBodyType,
+  CreateGuestBodyType,
+  CreateGuestResType,
+  GetGuestListQueryParamsType,
+  GetListGuestsResType,
   UpdateEmployeeAccountBodyType,
 } from "@/schemaValidations/account.schema";
 import {
@@ -108,6 +112,29 @@ const accountApiRequest = {
       },
     });
   },
+
+  guestList: (token: string, queryParams: GetGuestListQueryParamsType) =>
+    http<IBackendRes<GetListGuestsResType>>({
+      url: "/api/v1/accounts/guests",
+      method: "GET",
+      headers: {
+        Authorization: `Bearer ${token}`,
+      },
+      queryParams: {
+        fromDate: queryParams.fromDate?.toISOString(),
+        toDate: queryParams.toDate?.toISOString(),
+      },
+    }),
+
+  createGuest: (token: string, body: CreateGuestBodyType) =>
+    http<IBackendRes<CreateGuestResType>>({
+      url: "/api/v1/accounts/guests",
+      method: "POST",
+      body: body,
+      headers: {
+        Authorization: `Bearer ${token}`,
+      },
+    }),
 };
 
 export default accountApiRequest;

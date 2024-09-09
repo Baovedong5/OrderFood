@@ -1,4 +1,6 @@
 import {
+  CreateOrdersBodyType,
+  CreateOrdersResType,
   GetOrderDetailResType,
   GetOrderResType,
   GetOrdersQueryParamsType,
@@ -10,6 +12,16 @@ import {
 import { http } from "@/utils/http";
 
 const orderApiRequest = {
+  createOrders: (token: string, body: CreateOrdersBodyType) =>
+    http<IBackendRes<CreateOrdersResType>>({
+      url: "/api/v1/orders",
+      method: "POST",
+      body: body,
+      headers: {
+        Authorization: `Bearer ${token}`,
+      },
+    }),
+
   getOrderList: (token: string, queryParams?: GetOrdersQueryParamsType) =>
     http<IBackendRes<GetOrderResType>>({
       url: "/api/v1/orders",

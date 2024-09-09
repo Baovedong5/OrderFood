@@ -16,7 +16,6 @@ import { Switch } from "@/components/ui/switch";
 import { DishStatus } from "@/constants/type";
 import { cn, formatCurrency } from "@/lib/utils";
 import { GetListGuestsResType } from "@/schemaValidations/account.schema";
-import { DishListResType } from "@/schemaValidations/dish.schema";
 import {
   GuestLoginBody,
   GuestLoginBodyType,
@@ -28,15 +27,28 @@ import { useMemo, useState } from "react";
 import { useForm } from "react-hook-form";
 import { LuPlusCircle } from "react-icons/lu";
 import GuestsDialog from "./guests-dialog";
+import { TablesDialog } from "./tables-dialog";
+import Quantity from "@/app/guest/menu/quantity";
+import { useSession } from "next-auth/react";
+import { useDishListQuery } from "@/queries/useDish";
+import { useCreateOrderMutation } from "@/queries/useOrder";
+import { useCreateGuestMutation } from "@/queries/useAccount";
+import { toast } from "@/components/ui/use-toast";
 
 const AddOrder = () => {
   const [open, setOpen] = useState(false);
   const [selectedGuest, setSelectedGuest] = useState<
-    GetListGuestsResType["data"][0] | null
+    GetListGuestsResType[0] | null
   >(null);
   const [isNewGuest, setIsNewGuest] = useState(true);
   const [orders, setOrders] = useState<CreateOrderBodyType["orders"]>([]);
-  const dishes: DishListResType = [];
+
+  const { data: session } = useSession();
+  const token = session?.access_token as string;
+
+  const { data } = useDishListQuery();
+
+  const dishes = useMemo(() => data?.data ?? [], [data]);
 
   const totalPrice = useMemo(() => {
     return dishes.reduce((result, dish) => {
@@ -45,6 +57,9 @@ const AddOrder = () => {
       return result + order.quantity * dish.price;
     }, 0);
   }, [dishes, orders]);
+
+  const createOrderMutation = useCreateOrderMutation();
+  const createGuestMutation = useCreateGuestMutation();
 
   const form = useForm<GuestLoginBodyType>({
     resolver: zodResolver(GuestLoginBody),
@@ -72,10 +87,58 @@ const AddOrder = () => {
     });
   };
 
-  const handleOrder = async () => {};
+  const handleOrder = async () => {
+    let guestId = selectedGuest?.id;
+
+    if (isNewGuest) {
+      const guestRes = await createGuestMutation.mutateAsync({
+        token,
+        body: {
+          name,
+          tableNumber,
+        },
+      });
+      guestId = guestRes.data.id;
+    }
+
+    console.log(guestId);
+
+    if (!guestId) {
+      toast({
+        description: "Hãy chọn một khách hàng",
+      });
+      return;
+    }
+
+    await createOrderMutation.mutateAsync({
+      token,
+      body: {
+        guestId,
+        orders,
+      },
+    });
+
+    reset();
+  };
+
+  const reset = () => {
+    form.reset();
+    setSelectedGuest(null);
+    setIsNewGuest(true);
+    setOrders([]);
+    setOpen(false);
+  };
 
   return (
-    <Dialog onOpenChange={setOpen} open={open}>
+    <Dialog
+      onOpenChange={(value) => {
+        if (!value) {
+          reset();
+        }
+        setOpen(value);
+      }}
+      open={open}
+    >
       <DialogTrigger asChild>
         <Button size="sm" className="h-7 gap-1">
           <LuPlusCircle className="h-3.5 w-3.5" />
