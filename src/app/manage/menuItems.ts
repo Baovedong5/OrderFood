@@ -3,7 +3,6 @@ import {
   LuShoppingCart,
   LuTable,
   LuSalad,
-  LuLineChart,
   LuUsers2,
 } from "react-icons/lu";
 
@@ -27,12 +26,6 @@ const menuItems = [
     title: "Món ăn",
     Icon: LuSalad,
     href: "/manage/dishes",
-  },
-
-  {
-    title: "Phân tích",
-    Icon: LuLineChart,
-    href: "/manage/analytics",
   },
   {
     title: "Nhân viên",
