@@ -14,6 +14,8 @@ import {
   ChartTooltip,
   ChartTooltipContent,
 } from "@/components/ui/chart";
+import { DashboardIndicatorResType } from "@/schemaValidations/indicator.schema";
+import { useMemo } from "react";
 import { Bar, BarChart, XAxis, YAxis } from "recharts";
 
 const colors = [
@@ -50,15 +52,25 @@ const chartConfig = {
   },
 } satisfies ChartConfig;
 
-const chartData = [
-  { name: "chrome", successOrders: 275, fill: "var(--color-chrome)" },
-  { name: "safari", successOrders: 200, fill: "var(--color-safari)" },
-  { name: "firefox", successOrders: 187, fill: "var(--color-firefox)" },
-  { name: "edge", successOrders: 173, fill: "var(--color-edge)" },
-  { name: "other", successOrders: 90, fill: "var(--color-other)" },
-];
+const DishBarChart = ({
+  chartData,
+}: {
+  chartData: Pick<
+    DashboardIndicatorResType["dishIndicator"][0],
+    "name" | "successOrders"
+  >[];
+}) => {
+  const chartDataColors = useMemo(
+    () =>
+      chartData.map((data, index) => {
+        return {
+          ...data,
+          fill: colors[index] ?? colors[colors.length - 1],
+        };
+      }),
+    [chartData]
+  );
 
-const DishBarChart = () => {
   return (
     <Card>
       <CardHeader>
@@ -69,7 +81,7 @@ const DishBarChart = () => {
         <ChartContainer config={chartConfig}>
           <BarChart
             accessibilityLayer
-            data={chartData}
+            data={chartDataColors}
             layout="vertical"
             margin={{
               left: 0,
@@ -89,7 +101,7 @@ const DishBarChart = () => {
             <ChartTooltip cursor={false} content={<ChartTooltipContent />} />
             <Bar
               dataKey="successOrders"
-              name="Đơn thanh toán"
+              name="Đơn thanh toán &nbsp;"
               layout="vertical"
               radius={5}
             />

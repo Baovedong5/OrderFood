@@ -13,6 +13,7 @@ import {
   ChartTooltip,
   ChartTooltipContent,
 } from "@/components/ui/chart";
+import { DashboardIndicatorResType } from "@/schemaValidations/indicator.schema";
 import { format, parse } from "date-fns";
 import { CartesianGrid, Line, LineChart, XAxis } from "recharts";
 
@@ -23,50 +24,11 @@ const chartConfig = {
   },
 } satisfies ChartConfig;
 
-const RevenueLineChart = () => {
-  const chartData = [
-    {
-      date: "01/01/2024",
-      revenue: 1000,
-    },
-    {
-      date: "02/01/2024",
-      revenue: 2000,
-    },
-    {
-      date: "03/01/2024",
-      revenue: 1500,
-    },
-    {
-      date: "04/01/2024",
-      revenue: 3000,
-    },
-    {
-      date: "05/01/2024",
-      revenue: 2500,
-    },
-    {
-      date: "06/01/2024",
-      revenue: 4000,
-    },
-    {
-      date: "07/01/2024",
-      revenue: 3500,
-    },
-    {
-      date: "08/01/2024",
-      revenue: 5000,
-    },
-    {
-      date: "09/01/2024",
-      revenue: 4500,
-    },
-    {
-      date: "10/01/2024",
-      revenue: 6000,
-    },
-  ];
-
+const RevenueLineChart = ({
+  revenueByDate,
+}: {
+  revenueByDate: DashboardIndicatorResType["revenueByDate"];
+}) => {
   return (
     <Card>
       <CardHeader>
@@ -76,7 +38,7 @@ const RevenueLineChart = () => {
         <ChartContainer config={chartConfig}>
           <LineChart
             accessibilityLayer
-            data={chartData}
+            data={revenueByDate}
             margin={{
               left: 12,
               right: 12,
@@ -89,10 +51,10 @@ const RevenueLineChart = () => {
               axisLine={false}
               tickMargin={8}
               tickFormatter={(value) => {
-                if (chartData.length < 8) {
+                if (revenueByDate.length < 8) {
                   return value;
                 }
-                if (chartData.length < 33) {
+                if (revenueByDate.length < 33) {
                   const data = parse(value, "dd/MM/yyyy", new Date());
                   return format(data, "dd");
                 }
@@ -103,6 +65,7 @@ const RevenueLineChart = () => {
             <Line
               dataKey="revenue"
               type="linear"
+              name="Doanh thu"
               stroke="var(--color-desktop)"
               strokeWidth={2}
               dot={false}
